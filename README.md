@@ -18,7 +18,7 @@
 
 #### Example
 
-	diff_download  test@192.168.1.1:22 ./ remote_dir 
+	diff_upload  test@192.168.1.1:22 ./ remote_dir 
   
 ## Uninstall
 	
