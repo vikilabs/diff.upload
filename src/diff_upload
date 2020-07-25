@@ -1,0 +1,93 @@
+#!/bin/bash
+: '
+   Upload only difference to remote server
+
+        Author:
+
+        Viki @ Vignesh Natarajan ( https://vikilabs.org )
+'
+
+SERVER_DETAILS=""
+UNAME=""
+SERVER_IP=""
+SERVER_PORT=""
+cmd_name="diff_upload"
+REMOTE_FILE=""
+LOCAL_FILE=""
+
+
+#Inputs Validation
+validate_server_details() {
+    ret=`echo $1 |  grep "@"`
+
+    if [ -z "$ret" ]; then
+        echo "[ input error ] username or server ip missing"
+        exit 1
+    fi
+}
+
+parse_server_details() {
+    UNAME=`echo $1  | awk -F@ '{print $1}'`
+    TEMP_STR=`echo $1  | awk -F@ '{print $2}'`
+    SERVER_IP=`echo $TEMP_STR  | awk -F: '{print $1}'`
+    SERVER_PORT=`echo $TEMP_STR  | awk -F: '{print $2}'`
+
+    if [[ -z $SERVER_PORT ]]; then
+        SERVER_PORT="22"
+    fi
+    
+}
+
+print_connection_details() {
+    echo
+    echo "Remote Host Details :"
+    echo
+    echo "  User Name         : " $UNAME
+    echo "  Server IP         : " $SERVER_IP
+    echo "  Server SSH Port   : " $SERVER_PORT
+    echo "  Remote File       : " $REMOTE_FILE
+    echo "  Local File        : " $LOCAL_FILE
+    echo
+}
+
+upload_diff(){
+    rsync -vaz -e "ssh -p $SERVER_PORT" $LOCAL_FILE $UNAME@$SERVER_IP:$REMOTE_FILE
+}
+
+usage() {
+    echo
+    echo "<------------------  Usage Instruction --------------------->"
+    echo
+    echo "Download Only Difference From Remote Host"
+    echo
+    echo "  "$cmd_name "<username> @ <remote_ip / domain_name> : <remote_ssh_port>  <local file/dir> <remote file/dir>"
+    echo
+    echo " Example: "
+    echo
+    echo "  "$cmd_name "test@192.168.1.1:22 ./ remote_dir/"
+    echo
+    echo "Note: "
+    echo
+    echo    "If your remote file/dir has "~" symbol, enclose remote_dir in double quotes"
+    echo
+}
+
+if [ $# -lt 3 ]; then
+    echo
+    echo "[ error ] usage "
+    usage
+    exit 1
+fi
+
+
+SERVER_DETAILS="$1"
+LOCAL_FILE="$2"
+REMOTE_FILE="$3"
+
+validate_server_details $SERVER_DETAILS
+
+parse_server_details $SERVER_DETAILS
+print_connection_details
+
+upload_diff
+
